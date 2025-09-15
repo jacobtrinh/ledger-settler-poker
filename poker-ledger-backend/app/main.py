@@ -20,11 +20,12 @@ origins = [
 if settings.BACKEND_CORS_ORIGINS:
     origins.extend(settings.BACKEND_CORS_ORIGINS)
 
-# In production, add your Vercel app URL
+# In production, add specific Vercel URLs
 if settings.ENVIRONMENT == "production":
+    # Add both with and without trailing slash to be safe
     origins.extend([
-        "https://*.vercel.app",
-        "https://your-poker-app.vercel.app",  # Replace with your actual domain
+        "https://ledger-settler-poker.vercel.app",
+        "https://ledger-settler-poker.vercel.app/",
     ])
 
 app.add_middleware(
