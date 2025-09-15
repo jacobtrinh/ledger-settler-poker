@@ -9,39 +9,33 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# Set all CORS enabled origins
+# Explicitly allowed origins
 origins = [
-    "https://ledger-settler-poker-app.vercel.app",
+    "https://ledger-settler-poker-app.vercel.app",  # your frontend on Vercel
     "http://localhost:3000",  # for local dev
 ]
 
-# Add any additional origins from settings
+# If you want to make this dynamic, you can still extend from settings
 if settings.BACKEND_CORS_ORIGINS:
     origins.extend(settings.BACKEND_CORS_ORIGINS)
 
-# In production, add your Vercel app URL
-if settings.ENVIRONMENT == "production":
-    origins.extend([
-        "https://*.vercel.app",
-        "https://your-poker-app.vercel.app",  # Replace with your actual domain
-    ])
-
+# CORS middleware must come before routers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins,      # exact matches only
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# include your API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-
+# health and root endpoints
 @app.get("/")
 def root():
     return {"message": "Welcome to Poker Ledger API"}
 
-
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "environment": settings.ENVIRONMENT} 
+    return {"status": "healthy", "environment": settings.ENVIRONMENT}
