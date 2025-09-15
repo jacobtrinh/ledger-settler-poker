@@ -9,13 +9,16 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# Temporarily allow all origins for debugging
+origins = [
+    "https://ledger-settler-poker.vercel.app",  # frontend (production)
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins temporarily
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],   # GET, POST, PUT, DELETE, etc.
+    allow_headers=["*"],   # Authorization, Content-Type, etc.
 )
 
 # Test endpoint for CORS (before including routers)
