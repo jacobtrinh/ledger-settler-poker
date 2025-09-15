@@ -18,6 +18,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Test endpoint for CORS (before including routers)
+@app.get("/test-cors")
+@app.post("/test-cors")
+@app.options("/test-cors")
+def test_cors():
+    return {"status": "CORS is working", "method": "test"}
+
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
