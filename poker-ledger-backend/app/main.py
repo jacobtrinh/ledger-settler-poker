@@ -9,24 +9,13 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# Set all CORS enabled origins
-origins = [
-    "http://localhost:3000",
-    "https://localhost:3000",
-    settings.FRONTEND_URL,
-]
+# Get all CORS origins from settings
+origins = settings.get_backend_cors_origins
 
-# Add any additional origins from settings
-if settings.BACKEND_CORS_ORIGINS:
-    origins.extend(settings.BACKEND_CORS_ORIGINS)
-
-# In production, add specific Vercel URLs
-if settings.ENVIRONMENT == "production":
-    # Add both with and without trailing slash to be safe
-    origins.extend([
-        "https://ledger-settler-poker.vercel.app",
-        "https://ledger-settler-poker.vercel.app/",
-    ])
+# For debugging in production
+print(f"CORS Origins: {origins}")
+print(f"Environment: {settings.ENVIRONMENT}")
+print(f"Frontend URL from env: {settings.FRONTEND_URL}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +23,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
@@ -46,4 +36,8 @@ def root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "environment": settings.ENVIRONMENT} 
+    return {
+        "status": "healthy", 
+        "environment": settings.ENVIRONMENT,
+        "cors_origins": origins  # Include for debugging
+    } 
