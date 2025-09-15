@@ -11,9 +11,8 @@ app = FastAPI(
 
 # Set all CORS enabled origins
 origins = [
-    "http://localhost:3000",
-    "https://localhost:3000",
-    settings.FRONTEND_URL,
+    "https://ledger-settler-poker-app.vercel.app",
+    "http://localhost:3000",  # for local dev
 ]
 
 # Add any additional origins from settings
