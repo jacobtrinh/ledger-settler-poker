@@ -1,13 +1,14 @@
 {
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/api"
+      "src": "api/index.py",
+      "use": "@vercel/python"
     }
   ],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 30
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
     }
-  }
+  ]
 } 
