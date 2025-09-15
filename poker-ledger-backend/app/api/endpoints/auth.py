@@ -17,8 +17,9 @@ router = APIRouter()
 @router.options("/login")
 @router.options("/me")
 async def handle_options(request: Request):
+    origin = request.headers.get("origin", "*")
     headers = {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Credentials": "true",
@@ -60,21 +61,26 @@ def register(
     *,
     db: Session = Depends(deps.get_db),
     user_in: schemas.UserCreate,
+    response: Response,  # Add response parameter
 ) -> Any:
     """
-    Create new user without the need to be logged in.
+    Create new user.
     """
+    # Add CORS headers
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    
     user = crud.user.get_by_email(db, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="A user with this email already exists.",
+            detail="The user with this email already exists in the system.",
         )
     user = crud.user.get_by_username(db, username=user_in.username)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="A user with this username already exists.",
+            detail="The user with this username already exists in the system.",
         )
     user = crud.user.create(db, obj_in=user_in)
     return user
