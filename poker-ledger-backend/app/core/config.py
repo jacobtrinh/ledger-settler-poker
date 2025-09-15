@@ -53,11 +53,10 @@ class Settings(BaseSettings):
             origins.extend([
                 "https://ledger-settler-poker.vercel.app",
                 "https://ledger-settler-poker.vercel.app/",
-                # Add preview URLs pattern
-                "https://ledger-settler-poker-*.vercel.app",
             ])
         
-        return origins
+        # Remove duplicates and return
+        return list(set(origins))
     
     # Environment
     ENVIRONMENT: str = "development"
@@ -67,4 +66,4 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 
-settings = Settings() 
+settings = Settings()
