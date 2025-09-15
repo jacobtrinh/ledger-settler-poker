@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Any
-from fastapi import APIRouter, Body, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -12,34 +12,14 @@ from app.core.config import settings
 router = APIRouter()
 
 
-# Handle CORS preflight
-@router.options("/register")
-@router.options("/login")
-@router.options("/me")
-async def handle_options(request: Request):
-    origin = request.headers.get("origin", "*")
-    headers = {
-        "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Credentials": "true",
-    }
-    return Response(content="", status_code=200, headers=headers)
-
-
 @router.post("/login", response_model=schemas.Token)
-def login_access_token(
-    response: Response,  # Add response parameter
+def login(
     db: Session = Depends(deps.get_db),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    # Add CORS headers to response
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    
     user = crud.user.authenticate(
         db, username=form_data.username, password=form_data.password
     )
@@ -61,26 +41,21 @@ def register(
     *,
     db: Session = Depends(deps.get_db),
     user_in: schemas.UserCreate,
-    response: Response,  # Add response parameter
 ) -> Any:
     """
-    Create new user.
+    Create new user without the need to be logged in.
     """
-    # Add CORS headers
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    
     user = crud.user.get_by_email(db, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system.",
+            detail="A user with this email already exists.",
         )
     user = crud.user.get_by_username(db, username=user_in.username)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this username already exists in the system.",
+            detail="A user with this username already exists.",
         )
     user = crud.user.create(db, obj_in=user_in)
     return user

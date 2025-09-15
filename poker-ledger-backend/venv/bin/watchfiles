@@ -1,4 +1,6 @@
-#!/Users/jacobtrinh/Documents/GitHub/poker-ledger-settler/poker-ledger-backend/venv/bin/python3.12
+#!/bin/sh
+'''exec' "/Users/smadhan/Downloads/Poker Ledger Settler 2/poker-ledger-backend/venv/bin/python3" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys

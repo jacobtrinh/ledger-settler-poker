@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Response, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.api_v1.api import api_router
 from app.core.config import settings
@@ -9,41 +9,31 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
-# Remove CORS middleware - we'll handle it manually
+# Set all CORS enabled origins
+origins = [
+    "http://localhost:3000",
+    "https://localhost:3000",
+    settings.FRONTEND_URL,
+]
 
-# Add middleware to handle CORS for all requests
-@app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    response = await call_next(request)
-    origin = request.headers.get("origin")
-    
-    # Always add CORS headers
-    response.headers["Access-Control-Allow-Origin"] = origin or "*"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    
-    return response
+# Add any additional origins from settings
+if settings.BACKEND_CORS_ORIGINS:
+    origins.extend(settings.BACKEND_CORS_ORIGINS)
 
-# Handle OPTIONS requests globally
-@app.options("/{path:path}")
-async def handle_options(request: Request):
-    origin = request.headers.get("origin", "*")
-    return JSONResponse(
-        content={"status": "ok"},
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        }
-    )
+# In production, add your Vercel app URL
+if settings.ENVIRONMENT == "production":
+    origins.extend([
+        "https://*.vercel.app",
+        "https://your-poker-app.vercel.app",  # Replace with your actual domain
+    ])
 
-# Test endpoint for CORS (before including routers)
-@app.get("/test-cors")
-@app.post("/test-cors")
-def test_cors():
-    return {"status": "CORS is working", "method": "test"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
@@ -55,8 +45,4 @@ def root():
 
 @app.get("/health")
 def health_check():
-    return {
-        "status": "healthy", 
-        "environment": settings.ENVIRONMENT,
-        "frontend_url": settings.FRONTEND_URL
-    } 
+    return {"status": "healthy", "environment": settings.ENVIRONMENT} 

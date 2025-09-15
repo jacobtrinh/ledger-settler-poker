@@ -1,7 +1,6 @@
 from typing import Optional, List
 from pydantic_settings import BaseSettings
 from pydantic import validator
-import secrets
 
 
 class Settings(BaseSettings):
@@ -23,7 +22,7 @@ class Settings(BaseSettings):
         return "sqlite:///./poker_ledger.db"
     
     # JWT
-    SECRET_KEY: str = secrets.token_urlsafe(32)
+    SECRET_KEY: str = "your-secret-key-here-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
@@ -39,25 +38,6 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
     
-    @property
-    def get_backend_cors_origins(self) -> List[str]:
-        """Get all allowed CORS origins including Vercel preview URLs"""
-        origins = [self.FRONTEND_URL]
-        
-        # Add any additional origins
-        if self.BACKEND_CORS_ORIGINS:
-            origins.extend(self.BACKEND_CORS_ORIGINS)
-        
-        # In production, add Vercel URLs
-        if self.ENVIRONMENT == "production":
-            origins.extend([
-                "https://ledger-settler-poker.vercel.app",
-                "https://ledger-settler-poker.vercel.app/",
-            ])
-        
-        # Remove duplicates and return
-        return list(set(origins))
-    
     # Environment
     ENVIRONMENT: str = "development"
     
@@ -66,4 +46,4 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 
-settings = Settings()
+settings = Settings() 

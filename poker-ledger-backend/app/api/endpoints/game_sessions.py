@@ -153,4 +153,4 @@ def create_player(
     db.add(player)
     db.commit()
     db.refresh(player)
-    return schemas.Player.from_orm(player)
+    return schemas.Player.from_orm(player) 
