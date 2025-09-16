@@ -28,6 +28,13 @@ function App() {
   const [showResults, setShowResults] = useState(false);
   const [calculatingSettlements, setCalculatingSettlements] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creatingSession, setCreatingSession] = useState(false);
+  const [newSession, setNewSession] = useState({
+    title: '',
+    description: '',
+    game_date: new Date().toISOString().split('T')[0],
+  });
 
   // Load players when session changes
   useEffect(() => {
@@ -104,6 +111,34 @@ function App() {
     players.some(p => !p.name || (p.buyIn === 0 && p.cashOut === 0)) ||
     calculatingSettlements;
 
+  const openCreateModal = () => {
+    setShowCreateModal(true);
+  };
+
+  const closeCreateModal = () => {
+    if (creatingSession) return;
+    setShowCreateModal(false);
+    setNewSession({ title: '', description: '', game_date: new Date().toISOString().split('T')[0] });
+  };
+
+  const handleCreateSession = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setCreatingSession(true);
+      const session = await api.createGameSession({
+        ...newSession,
+        game_date: new Date(newSession.game_date).toISOString(),
+      }) as any;
+      setShowCreateModal(false);
+      setNewSession({ title: '', description: '', game_date: new Date().toISOString().split('T')[0] });
+      await handleSessionSelect(session);
+    } catch (error) {
+      console.error('Failed to create session:', error);
+    } finally {
+      setCreatingSession(false);
+    }
+  };
+
   // Show loading state
   if (loading) {
     return (
@@ -159,7 +194,7 @@ function App() {
             <div className="no-session-message">
               <h2>Select a Game Session</h2>
               <p>Choose an existing session from the sidebar or create a new one to start tracking your poker game.</p>
-              <button className="create-first-session" onClick={() => setSidebarOpen(true)}>
+              <button className="create-first-session" onClick={openCreateModal}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '0.5rem' }}>
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -170,6 +205,42 @@ function App() {
           )}
         </main>
       </div>
+
+      {showCreateModal && (
+        <div className="modal-overlay" onClick={closeCreateModal}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Create New Session</h3>
+            </div>
+            <form className="modal-body" onSubmit={handleCreateSession}>
+              <input
+                type="text"
+                placeholder="Session name"
+                value={newSession.title}
+                onChange={(e) => setNewSession({ ...newSession, title: e.target.value })}
+                required
+                autoFocus
+              />
+              <textarea
+                placeholder="Description (optional)"
+                value={newSession.description}
+                onChange={(e) => setNewSession({ ...newSession, description: e.target.value })}
+                rows={2}
+              />
+              <input
+                type="date"
+                value={newSession.game_date}
+                onChange={(e) => setNewSession({ ...newSession, game_date: e.target.value })}
+                required
+              />
+              <div className="modal-actions">
+                <button type="button" onClick={closeCreateModal} disabled={creatingSession}>Cancel</button>
+                <button type="submit" disabled={creatingSession}>{creatingSession ? 'Creating...' : 'Create'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
